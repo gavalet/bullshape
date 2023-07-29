@@ -12,6 +12,7 @@ import (
 
 type Company struct {
 	ID          uint   `json:"id"`
+	Name        string `json:"name"`
 	UUID        string `json:"uuid"`
 	Description string `json:"description"`
 	NumEmployes uint   `json:"num_of_employes"`
@@ -121,7 +122,7 @@ func UpdateCompany(id uint, opt EditCompanyOpts) (*Company, int, error) {
 	if opt.Registered != nil {
 		dbCompany.Registered = *opt.Registered
 	}
-	if opt.Type != nil && isValidType(*opt.Type) {
+	if opt.Type != nil && IsValidType(*opt.Type) {
 		dbCompany.Type = *opt.Type
 	}
 	err = dbCompany.Update(db.GormDB)
@@ -136,7 +137,7 @@ func createDBCompanyObj(newCompany NewCompany) (*db.Company, error) {
 	dbCompany := db.Company{}
 	dbCompany.UUID = *newCompany.UUID
 	dbCompany.Name = *newCompany.Name
-	if !isValidType(*newCompany.Type) {
+	if !IsValidType(*newCompany.Type) {
 		return nil, errors.New("Type: " + *newCompany.Type + "is not valid.")
 	}
 	dbCompany.Type = *newCompany.Type
@@ -149,6 +150,7 @@ func createDBCompanyObj(newCompany NewCompany) (*db.Company, error) {
 func serializeCompany(dbCompany *db.Company) Company {
 	company := Company{}
 	company.ID = dbCompany.ID
+	company.Name = dbCompany.Name
 	company.UUID = dbCompany.UUID
 	company.Description = dbCompany.Description
 	company.NumEmployes = dbCompany.NumEmployes
@@ -157,7 +159,7 @@ func serializeCompany(dbCompany *db.Company) Company {
 	return company
 }
 
-func isValidType(t string) bool {
+func IsValidType(t string) bool {
 	switch t {
 	case COOPERATIVE, NONPROFIT, SOLEPROPRIETORSHIP, CORPORATION:
 		return true

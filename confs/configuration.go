@@ -3,6 +3,7 @@ package confs
 import (
 	"bullshape/utils"
 	"fmt"
+	"os"
 
 	toml "github.com/pelletier/go-toml"
 )
@@ -29,8 +30,7 @@ func init() {
 	config, err := toml.LoadFile(confFile)
 	if err != nil {
 		fmt.Println(err)
-		return
-		// os.Exit(1)
+		os.Exit(1)
 	}
 
 	if expiration, ok := config.Get("expiration_cookie").(int64); ok {

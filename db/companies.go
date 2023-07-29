@@ -8,7 +8,7 @@ type Company struct {
 	gorm.Model
 	Name        string `gorm:"unique;not null"`
 	UUID        string `gorm:"unique"`
-	Description string
+	Description string `gorm:"type:varchar(3000)"`
 	NumEmployes uint   `gorm:"not null"`
 	Registered  bool   `gorm:"not null"`
 	Type        string `gorm:"not null"`
@@ -23,13 +23,13 @@ func (company *Company) Update(tx *gorm.DB) error {
 }
 
 func (company *Company) Delete(tx *gorm.DB) error {
-	return tx.Delete(&company).Error
+	return tx.Unscoped().Delete(&company).Error
 }
 
-func GetCompanies(tx *gorm.DB, id uint) (*Company, error) {
-	company := Company{}
-	err := tx.Where("id = ? ", id).Find(&company).Error
-	return &company, err
+func GetCompanies(tx *gorm.DB) ([]Company, error) {
+	companies := []Company{}
+	err := tx.Find(&companies).Error
+	return companies, err
 }
 
 func GetCompanyByID(tx *gorm.DB, id uint) (*Company, error) {

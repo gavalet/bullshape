@@ -6,6 +6,7 @@ import (
 	"bullshape/utils"
 	u "bullshape/utils"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -118,7 +119,7 @@ func GetUser(id uint) (*User, int, error) {
 
 	err, userDB := db.GetUserByID(db.GormDB, id)
 	if err != nil {
-		return nil, http.StatusNotFound, errors.New("Could not found user with ID:" + string(id))
+		return nil, http.StatusNotFound, errors.New("Could not found user with ID:" + fmt.Sprint(id))
 	}
 	user := serialiseUser(userDB, "")
 	return &user, http.StatusOK, nil
