@@ -6,6 +6,8 @@ import (
 	"io"
 	"os/exec"
 	"strings"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 func NewUUIDV4() string {
@@ -27,4 +29,9 @@ func GetPWD() (string, error) {
 	path = string(out)
 	path = strings.TrimSuffix(path, "\n")
 	return path, nil
+}
+
+func EncryptPass(pass string) string {
+	encryptedPass, _ := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
+	return string(encryptedPass)
 }

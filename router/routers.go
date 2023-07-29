@@ -7,12 +7,6 @@ import (
 )
 
 func apiRoutes(router *mux.Router) {
-
-	// usersRoutes := router.PathPrefix("/api/user").Subrouter()
-	// // usersRoutes := mux.NewRouter().PathPrefix("/api/users").Subrouter()
-	// usersRoutes.HandleFunc("", ctrl.GetUser).Methods("GET")
-	// usersRoutes.HandleFunc("", ctrl.CreateUser).Methods("POST")
-	// usersRoutes.HandleFunc("", ctrl.DeleteUser).Methods("DELETE")
 	router.HandleFunc("/api/companies", ctrls.CreateCompany).Methods("POST")
 
 	companiesRoutes := router.PathPrefix("/api/companies/{id}").Subrouter()
@@ -22,14 +16,17 @@ func apiRoutes(router *mux.Router) {
 
 }
 
-// func authRoutes(router *mux.Router) {
-//
-// }
+func authRoutes(router *mux.Router) {
+	router.HandleFunc("/api/user", ctrls.CreateUser).Methods("POST")
+	router.HandleFunc("/api/user/login", ctrls.Authenticate).Methods("POST")
+}
 
 func LoadRoutes() *mux.Router {
 	routes := mux.NewRouter()
 	// routes.HandleFunc("/aliveness", ctrl.Aliveness)
 	apiRoutes(routes)
-	// authRoutes(routes)
+	authRoutes(routes)
+	routes.Use(jwtAuthentication)
+
 	return routes
 }

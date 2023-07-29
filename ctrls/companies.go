@@ -16,11 +16,11 @@ func GetCompany(w http.ResponseWriter, r *http.Request) {
 		u.HttpError(w, http.StatusInternalServerError, err)
 		return
 	}
-	data, err := m.GetCompany(id)
+	data, status, err := m.GetCompany(id)
 	if err != nil {
-		u.HttpError(w, http.StatusInternalServerError, err)
+		u.HttpError(w, status, err)
 	}
-	u.HttpRespond(w, http.StatusOK, data)
+	u.HttpRespond(w, status, data)
 }
 
 func CreateCompany(w http.ResponseWriter, r *http.Request) {
@@ -68,7 +68,7 @@ func UpdateCompany(w http.ResponseWriter, r *http.Request) {
 	}
 	company, status, err := m.UpdateCompany(id, *compOpts)
 	if err != nil {
-		u.HttpError(w, http.StatusInternalServerError, err)
+		u.HttpError(w, status, err)
 	}
 	u.HttpRespond(w, status, company)
 }

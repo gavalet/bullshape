@@ -51,7 +51,6 @@ func GetUintParam(r *http.Request, param string) (uint, error) {
 }
 
 func HttpError(w http.ResponseWriter, status int, str_errors ...error) {
-	// Write the HTTP Status on header.
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(status)
 	if len(str_errors) > 0 {

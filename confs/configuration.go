@@ -19,6 +19,8 @@ type Configuration struct {
 	DefaultPassword string
 }
 
+var TokenPass = "token_pass"
+
 var Conf Configuration
 
 func init() {
@@ -30,51 +32,45 @@ func init() {
 		return
 		// os.Exit(1)
 	}
-	var ok bool
-	expiration, ok := config.Get("expiration_cookie").(int64)
-	if ok {
+
+	if expiration, ok := config.Get("expiration_cookie").(int64); ok {
 		Conf.ExpirationCookie = int(expiration)
 	} else {
 		Conf.ExpirationCookie = 3600
 	}
 
-	port, ok := config.Get("port").(int64)
-	if ok {
+	if port, ok := config.Get("port").(int64); ok {
 		Conf.ServerPort = port
 	} else {
 		Conf.ServerPort = 8080
 	}
 
-	mySQLUser, ok := config.Get("mysql_user").(string)
-	if ok {
+	if mySQLUser, ok := config.Get("mysql_user").(string); ok {
 		Conf.MySQLUser = mySQLUser
 	} else {
 		Conf.MySQLUser = "root"
 	}
 
-	mySQLPassword, ok := config.Get("mysql_password").(string)
-	if ok {
+	if mySQLPassword, ok := config.Get("mysql_password").(string); ok {
 		Conf.MySQLPassword = mySQLPassword
 	} else {
 		Conf.MySQLPassword = ""
 	}
-	mySQLDatabase, ok := config.Get("mysql_database").(string)
-	if ok {
+
+	if mySQLDatabase, ok := config.Get("mysql_database").(string); ok {
 		Conf.MySQLDatabase = mySQLDatabase
 	} else {
 		Conf.MySQLDatabase = "bullshape"
 	}
 
-	DefaultUsername, ok := config.Get("default_user").(string)
-	if ok {
-		Conf.DefaultUsername = DefaultUsername
+	if defaultUsername, ok := config.Get("default_user").(string); ok {
+		Conf.DefaultUsername = defaultUsername
 	} else {
 		Conf.DefaultUsername = "admin"
 	}
 
-	DefaultPassword, ok := config.Get("default_pwd").(string)
-	if ok {
-		Conf.DefaultPassword = DefaultPassword
+	if defaultPassword, ok := config.Get("default_pwd").(string); ok {
+		Conf.DefaultPassword = defaultPassword
 	} else {
 		Conf.DefaultPassword = "admin"
 	}

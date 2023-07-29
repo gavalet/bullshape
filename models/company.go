@@ -45,13 +45,13 @@ const (
 // companiesMX stores locks for each company.
 var companiesMX = sync.Map{}
 
-func GetCompany(id uint) (*Company, error) {
+func GetCompany(id uint) (*Company, int, error) {
 	dbCompany, err := db.GetCompanyByID(db.GormDB, id)
 	if err != nil {
-		return nil, err //u.NewError(err, GET_COMPANY_ERRCODE, errors.New(GET_COMPANY_ERR))
+		return nil, http.StatusNotFound, err //u.NewError(err, GET_COMPANY_ERRCODE, errors.New(GET_COMPANY_ERR))
 	}
 	company := serializeCompany(dbCompany)
-	return &company, nil
+	return &company, http.StatusOK, nil
 }
 
 func CreateCompany(newCompany NewCompany) (*Company, int, error) {

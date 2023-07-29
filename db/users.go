@@ -17,7 +17,7 @@ func (user *User) Create(tx *gorm.DB) error {
 
 //Update updates the user in DB
 func (user *User) Update(tx *gorm.DB) error {
-	return tx.Update(&user).Error
+	return tx.Save(&user).Error
 }
 
 //Delete removes a user from the DB
