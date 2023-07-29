@@ -2,6 +2,7 @@ package db
 
 import (
 	"bullshape/confs"
+	"bullshape/utils"
 	"fmt"
 
 	"github.com/jinzhu/gorm"
@@ -12,8 +13,9 @@ var GormDB *gorm.DB
 var AllTables = []interface{}{&User{}, &Company{}}
 
 func init() {
-
-	cmd := fmt.Sprintf(confs.Conf.MySQLUser + ":" + confs.Conf.MySQLPassword + "@/" +
+	dbhost := utils.EnvString("DB_HOST", "127.0.0.1")
+	fmt.Println("db host is : ", dbhost)
+	cmd := fmt.Sprintf(confs.Conf.MySQLUser + ":" + confs.Conf.MySQLPassword + "@tcp(" + dbhost + ":3306)/" +
 		confs.Conf.MySQLDatabase + "?charset=utf8&parseTime=True&loc=Local")
 
 	fmt.Println("db cmd command: ", cmd)

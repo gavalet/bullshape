@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -34,4 +35,12 @@ func GetPWD() (string, error) {
 func EncryptPass(pass string) string {
 	encryptedPass, _ := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
 	return string(encryptedPass)
+}
+
+func EnvString(env, fallback string) string {
+	e := os.Getenv(env)
+	if e == "" {
+		return fallback
+	}
+	return e
 }

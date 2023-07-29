@@ -1,0 +1,35 @@
+version: '3.9'
+services:
+  mysql:
+    image: mysql:latest
+    container_name: bullshape-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: 'bullshape'
+      MYSQL_ROOT_PASSWORD: ''
+      MYSQL_ALLOW_EMPTY_PASSWORD: 1
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - fullstack
+
+ 
+  api:
+    build: . 
+    container_name: "bullshape-api"
+    restart: always
+    networks:
+      - fullstack
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: mysql
+  
+volumes:
+  mysql_data:
+
+networks:
+  fullstack:
+    driver: bridge
