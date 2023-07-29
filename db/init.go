@@ -16,6 +16,7 @@ func init() {
 	cmd := fmt.Sprintf(confs.Conf.MySQLUser + ":" + confs.Conf.MySQLPassword + "@/" +
 		confs.Conf.MySQLDatabase + "?charset=utf8&parseTime=True&loc=Local")
 
+	fmt.Println("db cmd command: ", cmd)
 	db, err := gorm.Open("mysql", cmd)
 	if err != nil {
 		fmt.Println("Failed with error:", err)

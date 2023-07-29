@@ -3,7 +3,6 @@ package confs
 import (
 	"bullshape/utils"
 	"log"
-	"os"
 
 	toml "github.com/pelletier/go-toml"
 )
@@ -28,7 +27,8 @@ func init() {
 	config, err := toml.LoadFile(confFile)
 	if err != nil {
 		log.Println(err)
-		os.Exit(1)
+		return
+		// os.Exit(1)
 	}
 	var ok bool
 	expiration, ok := config.Get("expiration_cookie").(int64)
@@ -42,7 +42,7 @@ func init() {
 	if ok {
 		Conf.ServerPort = port
 	} else {
-		Conf.ServerPort = 8999
+		Conf.ServerPort = 8080
 	}
 
 	mySQLUser, ok := config.Get("mysql_user").(string)
@@ -62,7 +62,7 @@ func init() {
 	if ok {
 		Conf.MySQLDatabase = mySQLDatabase
 	} else {
-		Conf.MySQLDatabase = ""
+		Conf.MySQLDatabase = "bullshape"
 	}
 
 	DefaultUsername, ok := config.Get("default_user").(string)

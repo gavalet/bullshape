@@ -1,51 +1,51 @@
 package db
 
 import (
-	"bullshape/utils"
-
 	"github.com/jinzhu/gorm"
-)
-
-const (
-	CORPORATION        = "corporation"
-	NONPROFIT          = "non profit"
-	COOPERATIVE        = "cooperative"
-	SOLEPROPRIETORSHIP = "sole proprietorship"
 )
 
 type Company struct {
 	gorm.Model
-	UUID        string `gorm:"unique_index"`
+	Name        string `gorm:"unique;not null"`
+	UUID        string `gorm:"unique"`
 	Description string
-	NumEmployes uint
-	Registered  bool
-	Type        string
+	NumEmployes uint   `gorm:"not null"`
+	Registered  bool   `gorm:"not null"`
+	Type        string `gorm:"not null"`
 }
 
 func (company *Company) Create(tx *gorm.DB) error {
-	if len(company.UUID) == 0 {
-		company.UUID = utils.NewUUIDV4()
-	}
-	//todo check if it is unique
 	return tx.Create(&company).Error
 }
 
 func (company *Company) Update(tx *gorm.DB) error {
-	return tx.Update(&company).Error
+	return tx.Save(&company).Error
 }
 
 func (company *Company) Delete(tx *gorm.DB) error {
 	return tx.Delete(&company).Error
 }
 
-func GetCompanyByID(tx *gorm.DB, id uint) []Company {
-	company := []Company{}
-	tx = tx.Table("company").Where("id = ? ", id).Find(&company)
-	return company
+func GetCompanies(tx *gorm.DB, id uint) (*Company, error) {
+	company := Company{}
+	err := tx.Where("id = ? ", id).Find(&company).Error
+	return &company, err
 }
 
-func GetCompanyByUUID(tx *gorm.DB, uuid string) []Company {
-	company := []Company{}
-	tx = tx.Table("company").Where("image = ? ", uuid).Find(&company)
-	return company
+func GetCompanyByID(tx *gorm.DB, id uint) (*Company, error) {
+	company := Company{}
+	err := tx.Where("id = ? ", id).Find(&company).Error
+	return &company, err
+}
+
+func GetCompanyByUUID(tx *gorm.DB, uuid string) (*Company, error) {
+	company := Company{}
+	err := tx.Where("uuid = ? ", uuid).Find(&company).Error
+	return &company, err
+}
+
+func GetCompanyByName(tx *gorm.DB, name string) (*Company, error) {
+	company := Company{}
+	err := tx.Where("name = ? ", name).Find(&company).Error
+	return &company, err
 }
