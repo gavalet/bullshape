@@ -2,11 +2,16 @@ package router
 
 import (
 	"bullshape/ctrls"
+	"bullshape/utils/logger"
 
 	"github.com/gorilla/mux"
 )
 
 func apiRoutes(router *mux.Router) {
+
+	log := logger.NewLogger("Initialise")
+	log.Info("Start API routes")
+
 	router.HandleFunc("/api/companies", ctrls.CreateCompany).Methods("POST")
 
 	companiesRoutes := router.PathPrefix("/api/companies/{id}").Subrouter()

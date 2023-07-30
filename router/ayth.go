@@ -26,15 +26,11 @@ func jwtAuthentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		for endpoint, method := range NotAuthEndPoint {
-			fmt.Println("path  ", endpoint)
-			fmt.Println("method  ", method)
-
 			if method == r.Method && endpoint == r.URL.Path {
 				next.ServeHTTP(w, r)
 				return
 			}
 		}
-		fmt.Println("Sinexizw..  ")
 
 		tk := &models.Token{}
 		cookie, err := r.Cookie("token")
@@ -44,7 +40,6 @@ func jwtAuthentication(next http.Handler) http.Handler {
 		}
 
 		if cookie != nil {
-			fmt.Printf("Check cookie.")
 			token, err := jwt.Parse(cookie.Value, func(token *jwt.Token) (interface{}, error) {
 				return []byte(confs.TokenPass), nil
 			})

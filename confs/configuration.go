@@ -2,7 +2,7 @@ package confs
 
 import (
 	"bullshape/utils"
-	"fmt"
+	"bullshape/utils/logger"
 	"os"
 
 	toml "github.com/pelletier/go-toml"
@@ -25,11 +25,12 @@ var TokenPass = "token_pass"
 var Conf Configuration
 
 func init() {
+	log := logger.NewLogger("Initialise")
 	pwd, _ := utils.GetPWD()
 	confFile := pwd + "/bullshape-api.conf"
 	config, err := toml.LoadFile(confFile)
 	if err != nil {
-		fmt.Println(err)
+		log.Error(err)
 		os.Exit(1)
 	}
 

@@ -6,7 +6,6 @@ import (
 	"bullshape/utils"
 	u "bullshape/utils"
 	"errors"
-	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -65,7 +64,7 @@ func CreateUser(user *User) (*User, int, error) {
 
 	if err := userDB.Create(db.GormDB); err != nil {
 		//log.Error("Failed to create user.")
-		return nil, CREATE_USER_DB_WRITE_FAIL_ERRCODE,
+		return nil, http.StatusInternalServerError,
 			u.NewError(err, CREATE_USER_WRONG_PARAMS_ERRCODE,
 				errors.New("Failed to create use."))
 	}
@@ -113,14 +112,4 @@ func Login(username, password string) (*User, *http.Cookie, int, error) {
 		Expires: expirationTime,
 		Path:    "/",
 	}, http.StatusOK, nil
-}
-
-func GetUser(id uint) (*User, int, error) {
-
-	err, userDB := db.GetUserByID(db.GormDB, id)
-	if err != nil {
-		return nil, http.StatusNotFound, errors.New("Could not found user with ID:" + fmt.Sprint(id))
-	}
-	user := serialiseUser(userDB, "")
-	return &user, http.StatusOK, nil
 }

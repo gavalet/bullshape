@@ -1,0 +1,200 @@
+
+  swagger: '2.0'
+  info:
+    description: Documentation for bullshape API
+    title: of Learning Product API
+    version: 1.0.0
+    contact:
+      name: API Support
+      email: agavaletakis@hotmail.com
+  basePath: /api
+  schemes:
+    - http
+  consumes:
+    - application/json
+  produces:
+    - application/json
+  paths:
+    /companies:
+      post:
+        tags:
+        - companies
+        description: Create a new Company
+        responses:
+          "200":
+            description: The companie's details
+            schema:
+              $ref: '#/definitions/NewCompany'
+          "400":
+            $ref: '#/responses/BadRequestErrorResponse'
+          "401":
+            $ref: '#/responses/BadRequestErrorResponse'
+          "403":
+            $ref: '#/responses/BadRequestErrorResponse'
+          "500":
+            $ref: '#/responses/BadRequestErrorResponse'
+    /companies/{company_id}:
+      get:
+        description: Get a specific companie's information. 
+          Returns error if company doesnt exists.
+        tags:
+        - companies
+        parameters:
+        - $ref: '#/parameters/companyID'
+        responses:
+          "200":
+            description: The companie's details
+            schema:
+              $ref: '#/definitions/NewCompany'
+          "404":
+            $ref: '#/responses/BadRequestErrorResponse'
+        summary: Return infos of the company.
+        
+      patch:
+        description: Updates the companie's information. It can will be update only
+          the fields that are presented in the req Body.
+        summary: Updated infos of the company.
+        tags:
+        - companies
+        parameters:
+        - $ref: '#/parameters/companyID'
+        responses:
+          "200":
+            description: The companie's details
+            schema:
+              $ref: '#/definitions/NewCompany'
+          "400":
+            $ref: '#/responses/BadRequestErrorResponse'
+          "401":
+            $ref: '#/responses/BadRequestErrorResponse'
+          "404":
+            $ref: '#/responses/BadRequestErrorResponse'
+          "500":
+            $ref: '#/responses/BadRequestErrorResponse'
+      delete:
+        description: Deletes the company from the system.
+        tags:
+        - companies
+        parameters:
+        - $ref: '#/parameters/companyID'
+        responses:
+          "204":
+            description: Succesfully deleted company
+          "400":
+            $ref: '#/responses/BadRequestErrorResponse'
+          "401":
+            $ref: '#/responses/BadRequestErrorResponse'
+          "404":
+            $ref: '#/responses/BadRequestErrorResponse'
+          "500":
+            $ref: '#/responses/BadRequestErrorResponse'
+    /user/login:
+      post:
+        description: Login  a user user and return its token
+        operationId: Authenticate
+        responses:
+          "200":
+            $ref: '#/definitions/userResponse'
+          "400":
+            $ref: '#/responses/BadRequestErrorResponse'
+          "401":
+            $ref: '#/responses/BadRequestErrorResponse'
+        tags:
+        - users
+    /users:
+      post:
+        description: Create a new user
+        responses:
+          "200":
+            $ref: '#/definitions/userResponse'
+          "400":
+            $ref: '#/responses/BadRequestErrorResponse'
+          "500":
+            $ref: '#/responses/BadRequestErrorResponse'
+        tags:
+        - users
+  responses:
+    BadRequestErrorResponse:
+      description: One or more validation have failed during a request processing.
+      schema:
+        $ref: '#/definitions/Error'
+    
+
+  definitions:
+    NewCompany:
+      properties:
+        uuid:
+          type: string
+        description:
+          type: string
+        name:
+          type: string
+        num_of_employes:
+          type: integer
+          format: int64
+        Registered:
+          format: boolean
+        Type:
+          type: string
+          enum:
+          - corporation
+          - non profit
+          - cooperative
+          - sole proprietorship
+    companyResponse:
+      description: "Companie's details."
+      properties:
+        id:
+          type: integer
+          format: int64
+        uuid:
+          type: string
+        description:
+          type: string
+        name:
+          type: string
+        num_of_employes:
+          type: integer
+          format: int64
+        Registered:
+          type: boolean
+        Type:
+          type: string
+          enum:
+          - corporation
+          - non profit
+          - cooperative
+          - sole proprietorship
+    userResponse:
+      description: "The credentials of the user."
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        token:
+          type: string
+    Error:
+      description: "The error schema"
+      properties:
+        code:
+          description: |
+            This is represents an error code. While the message of the error may
+            change, the error code will stay the same. 
+          type: integer
+          format: int32
+        message:
+          description: 'A human-readable message, describing the error.'
+          type: string
+        errors:
+          description: More detailed infor about the error
+
+
+  parameters:
+    companyID:
+        name: company_id
+        description: The id of the company
+        in: path
+        required: true
+        type: integer
+        format: uint

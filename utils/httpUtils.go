@@ -54,6 +54,13 @@ func HttpError(w http.ResponseWriter, status int, str_errors ...error) {
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(status)
 	if len(str_errors) > 0 {
+		// Check if it is ErrorJson type
+		errj, ok := str_errors[0].(*ErrorJson)
+		if ok {
+			b, _ := json.Marshal(errj)
+			w.Write(b)
+			return
+		}
 		serrs := []string{}
 		for _, v := range str_errors {
 			if v != nil {

@@ -2,11 +2,11 @@ package main
 
 import (
 	"bullshape/router"
-	"fmt"
+	l "bullshape/utils/logger"
 )
 
 func main() {
-
-	fmt.Println("Lets start")
+	log := l.NewLogger("Initialise")
+	log.Printf("Lets start")
 	router.Run()
 }

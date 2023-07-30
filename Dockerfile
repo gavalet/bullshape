@@ -9,7 +9,7 @@ RUN go mod download
 COPY . .
 
 # Build the webservice
-RUN CGO_ENABLED=0 GOOS=linux go build -o myapi
+RUN CGO_ENABLED=0 GOOS=linux go build -o myapi cmd/bullshape/main.go
 
 FROM alpine:latest
 WORKDIR /app

@@ -49,7 +49,8 @@ var companiesMX = sync.Map{}
 func GetCompany(id uint) (*Company, int, error) {
 	dbCompany, err := db.GetCompanyByID(db.GormDB, id)
 	if err != nil {
-		return nil, http.StatusNotFound, err //u.NewError(err, GET_COMPANY_ERRCODE, errors.New(GET_COMPANY_ERR))
+		return nil, http.StatusNotFound,
+			u.NewError(err, GET_COMPANY_ERRCODE, errors.New(GET_COMPANY_ERR))
 	}
 	company := serializeCompany(dbCompany)
 	return &company, http.StatusOK, nil
@@ -65,17 +66,21 @@ func CreateCompany(newCompany NewCompany) (*Company, int, error) {
 	if newCompany.Name == nil || newCompany.NumEmployes == nil ||
 		newCompany.Type == nil || newCompany.Registered == nil {
 		return nil, http.StatusBadRequest,
-			u.NewError(nil, CREATE_COMPANY_EMPTY_PARAMS_ERRCODE, errors.New(CREATE_COMPANY_EMPTY_PARAMS_ERR))
+			u.NewError(nil, CREATE_COMPANY_EMPTY_PARAMS_ERRCODE,
+				errors.New(CREATE_COMPANY_EMPTY_PARAMS_ERR))
 	}
 	_, err := db.GetCompanyByName(db.GormDB, *newCompany.Name)
 	if err == nil {
 		return nil, http.StatusBadRequest,
-			u.NewError(nil, CREATE_COMPANY_COMPANY_NAME_ERRCODE, errors.New(CREATE_COMPANY_COMPANY_NAME_ERR))
+			u.NewError(nil, CREATE_COMPANY_COMPANY_NAME_ERRCODE,
+				errors.New(CREATE_COMPANY_COMPANY_NAME_ERR))
 	}
 	fmt.Println("Create company")
 
 	dbCompany, err := createDBCompanyObj(newCompany)
 	if err != nil {
+		err := u.NewError(nil, CREATE_COMPANY_COMPANY_WRONG_TYPE_ERRCODE,
+			errors.New(CREATE_COMPANY_COMPANY_NAME_ERR))
 		return nil, http.StatusBadRequest, err
 	}
 	err = dbCompany.Create(db.GormDB)
@@ -94,11 +99,15 @@ func DeleteCompany(id uint) (int, error) {
 
 	dbCompany, err := db.GetCompanyByID(db.GormDB, id)
 	if err != nil {
-		return http.StatusNotFound, err //u.NewError(err, GET_COMPANY_ERRCODE, errors.New(GET_COMPANY_ERR))
+		return http.StatusNotFound,
+			u.NewError(err, DELETE_COMPANY_NO_ENTRY_ERRCODE,
+				errors.New(GET_COMPANY_ERR))
 	}
 	err = dbCompany.Delete(db.GormDB)
 	if err != nil {
-		return http.StatusInternalServerError, err //u.NewError(err, GET_COMPANY_ERRCODE, errors.New(GET_COMPANY_ERR))
+		return http.StatusInternalServerError,
+			u.NewError(err, DELETE_COMPANY_COULD_NOT_DELETE_ERRCODE,
+				errors.New(GET_COMPANY_ERR))
 	}
 	return http.StatusNoContent, nil
 }
@@ -110,7 +119,9 @@ func UpdateCompany(id uint, opt EditCompanyOpts) (*Company, int, error) {
 
 	dbCompany, err := db.GetCompanyByID(db.GormDB, id)
 	if err != nil {
-		return nil, http.StatusNotFound, err //u.NewError(err, GET_COMPANY_ERRCODE, errors.New(GET_COMPANY_ERR))
+		return nil, http.StatusNotFound,
+			u.NewError(err, UPDATE_COMPANY_NO_ENTRY_ERRCODE,
+				errors.New(GET_COMPANY_ERR))
 	}
 
 	if opt.Description != nil {
@@ -127,7 +138,9 @@ func UpdateCompany(id uint, opt EditCompanyOpts) (*Company, int, error) {
 	}
 	err = dbCompany.Update(db.GormDB)
 	if err != nil {
-		return nil, http.StatusInternalServerError, err //u.NewError(err, GET_COMPANY_ERRCODE, errors.New(GET_COMPANY_ERR))
+		return nil, http.StatusInternalServerError,
+			u.NewError(err, UPDATE_COMPANY_COULD_NOT_UPDATE,
+				errors.New(GET_COMPANY_ERR))
 	}
 	cmpn := serializeCompany(dbCompany)
 	return &cmpn, http.StatusOK, nil
