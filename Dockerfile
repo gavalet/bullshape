@@ -15,4 +15,5 @@ FROM alpine:latest
 WORKDIR /app
 # Copy the binary from the builder stage to the final stage
 COPY --from=builder /app/myapi .
+COPY --from=builder /app/*conf .
 CMD ["./myapi"]
