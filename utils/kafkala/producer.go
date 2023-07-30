@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	createCompanyTopic = "quickstart-events"
-	updateCompanyTopic = "quickstart-events"
+	createCompanyTopic = "create-company"
+	updateCompanyTopic = "update-company"
 )
 
 // CompanyProducer interface

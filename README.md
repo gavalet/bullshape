@@ -35,6 +35,62 @@ To stop all services run:
 ```
 sudo docker-compose down
 ```
+# swagger.yaml
+This file descibes all the endpoints. 
+
+# Manual instructions
+- Compile and run bullshape service 
+```
+go build -o bullshape cmd/bullshape/main.go
+./bullshape
+```
+- Create User
+```
+curl --location 'http://localhost:8080/api/user' \
+--header 'Content-Type: application/json' \
+--data '{"username": "gavalet",
+"password": "gavalet123"
+}'
+```
+- Login
+```
+curl --location 'http://localhost:8080/api/user/login' \
+--header 'Content-Type: application/json' \
+--data '{
+    "username": "gavalet",
+    "password": "gavalet123"
+}'
+
+```
+- Create Company
+Cookie should be filled correctly.
+```
+curl --location 'http://localhost:8080/api/companies' \
+--header 'Content-Type: application/json' \
+--header 'Cookie: token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySWQiOjEsImV4cCI6MTY5MDg1MTgxMSwianRpIjoiMSJ9.Hos4-3agAdw-I28e097vPyWvX_8LxCXkquam5zyp3rE; token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySWQiOjEsImV4cCI6MTY5MDk0NTg1Mn0.QfJcSqqmLuflGKic7I8TCVOokh_X5SSg6ITI2ij_peM' \
+--data '{
+    "name": "CompanyName",
+    "description": "Description",
+    "num_of_employes": 3,
+    "registered": true,
+    "type": "corporation"
+}'
+```
+
+- Create Company
+Cookie should be filled correctly.
+Company ID should be filled correctly
+```
+curl --location 'http://localhost:8080/api/companies/5' \
+--header 'Cookie: token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySWQiOjEsImV4cCI6MTY5MDg1MTgxMSwianRpIjoiMSJ9.Hos4-3agAdw-I28e097vPyWvX_8LxCXkquam5zyp3rE; token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySWQiOjEsImV4cCI6MTY5MDk0NTg1Mn0.QfJcSqqmLuflGKic7I8TCVOokh_X5SSg6ITI2ij_peM'
+```
+
+- Run integration tests
+```
+go test -v bullshape/...
+```
+
+
 # Feature work
  - Use prometheus for monitoring and alerting 
  - Change project structure to DDD
