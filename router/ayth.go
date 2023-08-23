@@ -85,3 +85,16 @@ func jwtAuthentication(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+func Recovery(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if err := recover(); err != nil {
+				fmt.Println("Recover: ", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				u.HttpError(w, http.StatusInternalServerError, errors.New("System hanged"))
+			}
+		}()
+		next.ServeHTTP(w, r)
+	})
+}

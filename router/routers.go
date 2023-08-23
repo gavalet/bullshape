@@ -32,6 +32,7 @@ func loadRoutes() *mux.Router {
 	apiRoutes(routes)
 	authRoutes(routes)
 	routes.Use(jwtAuthentication)
+	routes.Use(Recovery)
 
 	return routes
 }
