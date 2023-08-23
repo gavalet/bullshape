@@ -14,7 +14,7 @@ import (
 
 func Run() {
 	log := logger.NewLogger("Initialise")
-	router := LoadRoutes()
+	router := loadRoutes()
 	server := &http.Server{
 		Addr:    ":" + strconv.FormatInt(confs.Conf.ServerPort, 10),
 		Handler: router,

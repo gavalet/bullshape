@@ -26,7 +26,7 @@ func authRoutes(router *mux.Router) {
 	router.HandleFunc("/api/user/login", ctrls.Authenticate).Methods("POST")
 }
 
-func LoadRoutes() *mux.Router {
+func loadRoutes() *mux.Router {
 	routes := mux.NewRouter()
 	// routes.HandleFunc("/aliveness", ctrl.Aliveness)
 	apiRoutes(routes)

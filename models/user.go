@@ -7,7 +7,6 @@ import (
 	u "bullshape/utils"
 	"errors"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -77,7 +76,7 @@ func CreateUser(user *User) (*User, int, error) {
 		}}
 
 	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), tk)
-	tokenString, _ := token.SignedString([]byte(os.Getenv("token_password")))
+	tokenString, _ := token.SignedString([]byte(confs.TokenPass))
 	userNew := serialiseUser(&userDB, tokenString)
 	return &userNew, http.StatusOK, nil
 }

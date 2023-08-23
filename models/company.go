@@ -11,29 +11,29 @@ import (
 )
 
 type Company struct {
-	ID          uint   `json:"id"`
-	Name        string `json:"name"`
-	UUID        string `json:"uuid"`
-	Description string `json:"description"`
-	NumEmployes uint   `json:"num_of_employes"`
-	Registered  bool   `json:"registered"`
-	Type        string `json:"type"`
+	ID          uint     `json:"id"`
+	Name        string   `json:"name"`
+	UUID        string   `json:"uuid"`
+	Description string   `json:"description"`
+	NumEmployes uint     `json:"num_of_employes"`
+	Registered  bool     `json:"registered"`
+	Type        db.CType `json:"type"`
 }
 
 type NewCompany struct {
-	Name        *string `json:"name"`
-	UUID        *string `json:"uuid"`
-	Description string  `json:"description"`
-	NumEmployes *uint   `json:"num_of_employes"`
-	Registered  *bool   `json:"registered"`
-	Type        *string `json:"type"`
+	Name        *string   `json:"name,omitempty"`
+	UUID        *string   `json:"uuid"`
+	Description string    `json:"description"`
+	NumEmployes *uint     `json:"num_of_employes"`
+	Registered  *bool     `json:"registered"`
+	Type        *db.CType `json:"type"`
 }
 
 type EditCompanyOpts struct {
-	Description *string `json:"description"`
-	NumEmployes *uint   `json:"num_of_employes"`
-	Registered  *bool   `json:"registered"`
-	Type        *string `json:"type"`
+	Description *string   `json:"description"`
+	NumEmployes *uint     `json:"num_of_employes"`
+	Registered  *bool     `json:"registered"`
+	Type        *db.CType `json:"type"`
 }
 
 const (
@@ -69,13 +69,13 @@ func CreateCompany(newCompany NewCompany) (*Company, int, error) {
 			u.NewError(nil, CREATE_COMPANY_EMPTY_PARAMS_ERRCODE,
 				errors.New(CREATE_COMPANY_EMPTY_PARAMS_ERR))
 	}
-	_, err := db.GetCompanyByName(db.GormDB, *newCompany.Name)
-	if err == nil {
-		return nil, http.StatusBadRequest,
-			u.NewError(nil, CREATE_COMPANY_COMPANY_NAME_ERRCODE,
-				errors.New(CREATE_COMPANY_COMPANY_NAME_ERR))
-	}
-	fmt.Println("Create company")
+	// _, err := db.GetCompanyByName(db.GormDB, *newCompany.Name)
+	// if err == nil {
+	// 	return nil, http.StatusBadRequest,
+	// 		u.NewError(nil, CREATE_COMPANY_COMPANY_NAME_ERRCODE,
+	// 			errors.New(CREATE_COMPANY_COMPANY_NAME_ERR))
+	// }
+	// fmt.Println("Create company")
 
 	dbCompany, err := createDBCompanyObj(newCompany)
 	if err != nil {
@@ -151,7 +151,7 @@ func createDBCompanyObj(newCompany NewCompany) (*db.Company, error) {
 	dbCompany.UUID = *newCompany.UUID
 	dbCompany.Name = *newCompany.Name
 	if !IsValidType(*newCompany.Type) {
-		return nil, errors.New("Type: " + *newCompany.Type + "is not valid.")
+		return nil, errors.New("Type is not valid.")
 	}
 	dbCompany.Type = *newCompany.Type
 	dbCompany.Description = newCompany.Description
@@ -172,7 +172,7 @@ func serializeCompany(dbCompany *db.Company) Company {
 	return company
 }
 
-func IsValidType(t string) bool {
+func IsValidType(t db.CType) bool {
 	switch t {
 	case COOPERATIVE, NONPROFIT, SOLEPROPRIETORSHIP, CORPORATION:
 		return true

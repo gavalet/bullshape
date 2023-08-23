@@ -4,6 +4,15 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+const (
+	NONPROFIT          = CType("NonProfit")
+	COOPERATIVE        = CType("Cooperative")
+	CORPORATIONS       = CType("(Corporations")
+	SOLEPROPRIETORSHIP = CType("Solo Proprietorship")
+)
+
+type CType string
+
 type Company struct {
 	gorm.Model
 	Name        string `gorm:"unique;not null"`
@@ -11,7 +20,7 @@ type Company struct {
 	Description string `gorm:"type:varchar(3000)"`
 	NumEmployes uint   `gorm:"not null"`
 	Registered  bool   `gorm:"not null"`
-	Type        string `gorm:"not null"`
+	Type        CType  `gorm:"not null"`
 }
 
 func (company *Company) Create(tx *gorm.DB) error {
