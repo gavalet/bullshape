@@ -20,18 +20,20 @@ type CompanyProducer interface {
 	GetNewKafkaWriter(topic string) *kafka.Writer
 }
 
-type companiesProducer struct {
+type CompaniesProducer struct {
 	createWriter *kafka.Writer
 	updateWriter *kafka.Writer
 }
 
 // NewCompanyProducer constructor
-func NewCompanyProducer() *companiesProducer {
-	return &companiesProducer{}
+func NewCompanyProducer() *CompaniesProducer {
+	cp := CompaniesProducer{}
+	cp.Run()
+	return &cp
 }
 
 // GetNewKafkaWriter Create new kafka writer
-func (p *companiesProducer) GetNewKafkaWriter(topic string) *kafka.Writer {
+func (p *CompaniesProducer) GetNewKafkaWriter(topic string) *kafka.Writer {
 	w := &kafka.Writer{
 		Addr:  kafka.TCP("localhost:9092"),
 		Topic: topic,
@@ -40,23 +42,23 @@ func (p *companiesProducer) GetNewKafkaWriter(topic string) *kafka.Writer {
 }
 
 // Run init producers writers
-func (p *companiesProducer) Run() {
+func (p *CompaniesProducer) Run() {
 	p.createWriter = p.GetNewKafkaWriter(createCompanyTopic)
 	p.updateWriter = p.GetNewKafkaWriter(updateCompanyTopic)
 }
 
 // Close close writers
-func (p companiesProducer) Close() {
+func (p CompaniesProducer) Close() {
 	p.createWriter.Close()
 	p.updateWriter.Close()
 }
 
 // PublishCreate publish messages to create topic
-func (p *companiesProducer) PublishCreate(ctx context.Context, msgs ...kafka.Message) error {
+func (p *CompaniesProducer) PublishCreate(ctx context.Context, msgs ...kafka.Message) error {
 	return p.createWriter.WriteMessages(ctx, msgs...)
 }
 
 // PublishUpdate publish messages to update topic
-func (p *companiesProducer) PublishUpdate(ctx context.Context, msgs ...kafka.Message) error {
+func (p *CompaniesProducer) PublishUpdate(ctx context.Context, msgs ...kafka.Message) error {
 	return p.updateWriter.WriteMessages(ctx, msgs...)
 }

@@ -12,23 +12,27 @@ import (
 	"time"
 )
 
-func Run() {
-	log := logger.NewLogger("Initialise")
-	router := loadRoutes()
+func (s *Server) Run() {
+
+	lg := logger.GetLogger()
+	//lg.SetExtra("Req:", "Main things")
+	lg.Slogger.Info("Eimai sto Run!!!")
+	s.Logger.Info("lalalala")
+	log := s.Logger
+	router := s.loadRoutes()
 	server := &http.Server{
 		Addr:    ":" + strconv.FormatInt(confs.Conf.ServerPort, 10),
 		Handler: router,
 	}
-	go handleSystemSignals(server)
+	go s.handleSystemSignals(server)
 	err := server.ListenAndServe()
 	if err != nil && err != http.ErrServerClosed {
 		log.Info("Server error:", err)
 	}
 }
 
-func handleSystemSignals(server *http.Server) {
-	log := logger.NewLogger("Initialise")
-
+func (s *Server) handleSystemSignals(server *http.Server) {
+	log := s.Logger
 	signalChanel := make(chan os.Signal, 1)
 	signal.Notify(signalChanel,
 		syscall.SIGHUP,
@@ -59,12 +63,12 @@ func handleSystemSignals(server *http.Server) {
 		}
 	}()
 	exitCode := <-exit
-	shutdownServer(server)
+	s.shutdownServer(server)
 	os.Exit(exitCode)
 }
 
-func shutdownServer(server *http.Server) {
-	log := logger.NewLogger("Initialise")
+func (s *Server) shutdownServer(server *http.Server) {
+	log := s.Logger
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	// Stop accepting new connections.

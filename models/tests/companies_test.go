@@ -3,6 +3,7 @@ package models_tests
 import (
 	"bullshape/db"
 	"bullshape/models"
+	"bullshape/utils/logger"
 	"net/http"
 	"testing"
 )
@@ -47,21 +48,25 @@ func TestGetCompany(t *testing.T) {
 	for _, test := range tt {
 
 		t.Run(test.name, func(t *testing.T) {
+			log := logger.GetLogger()
+			db := db.NewDatabaseConnection()
+			m := models.NewCtrlServices(log.Slogger, db)
+
 			//prepare
 			for i := range test.companiesToAdd {
-				test.companiesToAdd[i].Create(db.GormDB)
+				test.companiesToAdd[i].Create(m.DB)
 				//cleanup
-				defer test.companiesToAdd[i].Delete(db.GormDB)
+				defer test.companiesToAdd[i].Delete(m.DB)
 			}
 
 			//test
 			var err error
 			var company *models.Company
 			if test.expectedToFind {
-				company, _, err = models.GetCompany(test.companiesToAdd[0].ID)
+				company, _, err = m.GetCompany(test.companiesToAdd[0].ID)
 			} else {
 				max := len(test.companiesToAdd)
-				company, _, err = models.GetCompany(test.companiesToAdd[max-1].ID + 1)
+				company, _, err = m.GetCompany(test.companiesToAdd[max-1].ID + 1)
 			}
 
 			//assert
@@ -117,7 +122,7 @@ func TestCreateCompany(t *testing.T) {
 	uuid := "uuid"
 	numEmpl := uint(1)
 	registered := true
-	tp, wrongTp := models.COOPERATIVE, "mytype"
+	tp, wrongTp := db.COOPERATIVE, "mytype"
 	tt := []test{
 		{
 			name: "Create Company - Successful",
@@ -193,20 +198,23 @@ func TestCreateCompany(t *testing.T) {
 	for _, test := range tt {
 
 		t.Run(test.name, func(t *testing.T) {
+			log := logger.GetLogger()
+			dbc := db.NewDatabaseConnection()
+			m := models.NewCtrlServices(log.Slogger, dbc)
 
 			//test
 			var err error
 			var company *models.Company
 			var status int
 
-			company, status, err = models.CreateCompany(test.companiesToAdd)
+			company, status, err = m.CreateCompany(test.companiesToAdd)
 			var dbCompany *db.Company
 			var errDB error
 
 			if company != nil {
-				dbCompany, errDB = db.GetCompanyByID(db.GormDB, company.ID)
+				dbCompany, errDB = db.GetCompanyByID(m.DB, company.ID)
 				if errDB == nil {
-					defer dbCompany.Delete(db.GormDB)
+					defer dbCompany.Delete(m.DB)
 				}
 			}
 
@@ -225,7 +233,7 @@ func TestCreateCompany(t *testing.T) {
 				if errDB != nil || dbCompany == nil {
 					t.Fatal("Expected a new company DB enty Got nothing. Error : ", errDB)
 				}
-				defer dbCompany.Delete(db.GormDB)
+				defer dbCompany.Delete(m.DB)
 				if dbCompany.Name != company.Name {
 					t.Fatal("Wrong company name. Expected : ", dbCompany.Name,
 						"Got: ", company.Name)
@@ -270,7 +278,7 @@ func TestCreateTwoCompanies(t *testing.T) {
 	uuid1, uuid2 := "uuid", "uuid2"
 	numEmpl := uint(1)
 	registered := true
-	tp := models.COOPERATIVE
+	tp := db.COOPERATIVE
 	tt := []test{
 		{
 			name: "Create two Companies - Successful",
@@ -322,21 +330,24 @@ func TestCreateTwoCompanies(t *testing.T) {
 	for _, test := range tt {
 
 		t.Run(test.name, func(t *testing.T) {
+			log := logger.GetLogger()
+			dbc := db.NewDatabaseConnection()
+			m := models.NewCtrlServices(log.Slogger, dbc)
 
 			//test
 			var err error
 			var company *models.Company
 			var status int
 			for _, companyToAdd := range test.companiesToAdd {
-				company, status, err = models.CreateCompany(companyToAdd)
+				company, status, err = m.CreateCompany(companyToAdd)
 				if err != nil {
 					break
 				}
 			}
 			//cleanup
-			dbCompanies, _ := db.GetCompanies(db.GormDB)
+			dbCompanies, _ := db.GetCompanies(m.DB)
 			for i := range dbCompanies {
-				defer dbCompanies[i].Delete(db.GormDB)
+				defer dbCompanies[i].Delete(m.DB)
 			}
 
 			//assert
@@ -351,7 +362,7 @@ func TestCreateTwoCompanies(t *testing.T) {
 			}
 
 			if !test.expectedError {
-				dbCompany, err := db.GetCompanyByID(db.GormDB, company.ID)
+				dbCompany, err := db.GetCompanyByID(m.DB, company.ID)
 				if err != nil || dbCompany == nil {
 					t.Fatal("Expected a new company DB enty Got nothing. Error : ", err)
 				}
@@ -424,17 +435,21 @@ func TestDeleteCompany(t *testing.T) {
 	for _, test := range tt {
 
 		t.Run(test.name, func(t *testing.T) {
+			log := logger.GetLogger()
+			dbc := db.NewDatabaseConnection()
+			m := models.NewCtrlServices(log.Slogger, dbc)
+
 			//prepare
-			test.companiesToAdd.Create(db.GormDB)
+			test.companiesToAdd.Create(m.DB)
 			//cleanup
-			defer test.companiesToAdd.Delete(db.GormDB)
+			defer test.companiesToAdd.Delete(m.DB)
 
 			//test
 			var err error
 			if test.expectedToBeDeleted {
-				_, err = models.DeleteCompany(test.companiesToAdd.ID)
+				_, err = m.DeleteCompany(test.companiesToAdd.ID)
 			} else {
-				_, err = models.DeleteCompany(test.companiesToAdd.ID + 1)
+				_, err = m.DeleteCompany(test.companiesToAdd.ID + 1)
 			}
 
 			//assert
@@ -445,7 +460,7 @@ func TestDeleteCompany(t *testing.T) {
 			if !test.expectedToBeDeleted && err == nil {
 				t.Fatal("Expected  error. Got no error: ")
 			}
-			companyDB, err := db.GetCompanyByID(db.GormDB, test.companiesToAdd.ID)
+			companyDB, err := db.GetCompanyByID(m.DB, test.companiesToAdd.ID)
 			if test.expectedToBeDeleted && err == nil {
 				t.Fatal("Expected no company DB entry. Got DB entry with ID: ", companyDB.ID)
 			}
@@ -472,7 +487,7 @@ func TestUpdateCompany(t *testing.T) {
 	newDescription := "New Description"
 	newNumberOfEmployes := uint(1)
 	newRegisterd := false
-	newType, newWrongType := models.CORPORATION, "mytype"
+	newType, newWrongType := db.COOPERATIVE, "mytype"
 	tt := []test{
 		{
 			name: "Update Company - All fields -Successful",
@@ -549,18 +564,22 @@ func TestUpdateCompany(t *testing.T) {
 	for _, test := range tt {
 
 		t.Run(test.name, func(t *testing.T) {
+			log := logger.GetLogger()
+			dbc := db.NewDatabaseConnection()
+			m := models.NewCtrlServices(log.Slogger, dbc)
+
 			//prepare
-			test.companiesToAdd.Create(db.GormDB)
+			test.companiesToAdd.Create(m.DB)
 			//cleanup
-			defer test.companiesToAdd.Delete(db.GormDB)
+			defer test.companiesToAdd.Delete(m.DB)
 
 			//test
 			var status int
 			var err error
 			if !test.expectedError {
-				_, status, err = models.UpdateCompany(test.companiesToAdd.ID, test.companyopts)
+				_, status, err = m.UpdateCompany(test.companiesToAdd.ID, test.companyopts)
 			} else {
-				_, status, err = models.UpdateCompany(test.companiesToAdd.ID+1, test.companyopts)
+				_, status, err = m.UpdateCompany(test.companiesToAdd.ID+1, test.companyopts)
 			}
 
 			//assert
@@ -574,7 +593,7 @@ func TestUpdateCompany(t *testing.T) {
 			if test.expectedStatus != status {
 				t.Fatal("Expected status: ", test.expectedStatus, " Got: ", status)
 			}
-			companyDB, err := db.GetCompanyByID(db.GormDB, test.companiesToAdd.ID)
+			companyDB, err := db.GetCompanyByID(m.DB, test.companiesToAdd.ID)
 			if !test.expectedError {
 				if test.companyopts.Description != nil {
 					if companyDB.Description != *test.companyopts.Description {

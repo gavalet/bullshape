@@ -2,16 +2,16 @@ package ctrls
 
 import (
 	"bullshape/models"
+	"bullshape/utils"
 	u "bullshape/utils"
-	l "bullshape/utils/logger"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
 	"net/http"
 )
 
-func CreateUser(w http.ResponseWriter, r *http.Request) {
-	log := l.NewLogger("")
+func (ctrl *ctrlServices) CreateUser(w http.ResponseWriter, r *http.Request) {
+	log := ctrl.Logger.With("REQ ID:", utils.GetReqId(r))
 	account := &models.User{}
 	err := json.NewDecoder(r.Body).Decode(account)
 	if err != nil {
@@ -19,8 +19,8 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		u.HttpError(w, http.StatusInternalServerError, err)
 		return
 	}
-
-	resp, status, err := models.CreateUser(account)
+	m := models.NewCtrlServices(log, ctrl.DB)
+	resp, status, err := m.CreateUser(account)
 	if err != nil {
 		log.Error("Create user returned error. Error: ", err)
 		u.HttpError(w, status, err)
@@ -28,8 +28,8 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	u.HttpRespond(w, status, resp)
 }
 
-func Authenticate(w http.ResponseWriter, r *http.Request) {
-	log := l.NewLogger("")
+func (ctrl *ctrlServices) Authenticate(w http.ResponseWriter, r *http.Request) {
+	log := ctrl.Logger.With("REQ ID:", utils.GetReqId(r))
 	account := &models.User{}
 	body, _ := ioutil.ReadAll(r.Body)
 	log.Debug("Auth Body  :\n %s", body)
@@ -41,8 +41,8 @@ func Authenticate(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
-
-	resp, cookie, status, err := models.Login(account.Username, account.Password)
+	m := models.NewCtrlServices(log, ctrl.DB)
+	resp, cookie, status, err := m.Login(account.Username, account.Password)
 	if err != nil {
 		log.Error("Login in failed. Error: ", err)
 		u.HttpError(w, status, err)

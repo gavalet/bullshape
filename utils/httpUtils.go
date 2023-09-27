@@ -81,3 +81,7 @@ func HttpRespond(w http.ResponseWriter, header int, data interface{}) {
 	w.WriteHeader(header)
 	json.NewEncoder(w).Encode(data)
 }
+
+func GetReqId(r *http.Request) string {
+	return r.Header.Get("request_id")
+}

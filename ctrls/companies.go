@@ -2,21 +2,38 @@ package ctrls
 
 import (
 	"bullshape/models"
-	m "bullshape/models"
+	"bullshape/utils"
 	u "bullshape/utils"
 	"bullshape/utils/kafkala"
-	l "bullshape/utils/logger"
 	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/segmentio/kafka-go"
+	"go.uber.org/zap"
 )
 
-func GetCompany(w http.ResponseWriter, r *http.Request) {
-	log := l.NewLogger("")
+type ctrlServices struct {
+	DB     *gorm.DB
+	Logger *zap.SugaredLogger
+	Kafka  *kafkala.CompaniesProducer
+}
+
+func NewCtrlServices(logger *zap.SugaredLogger, db *gorm.DB, kafka *kafkala.CompaniesProducer) *ctrlServices {
+	ctrlSrves := &ctrlServices{
+		DB:     db,
+		Logger: logger,
+		Kafka:  kafka,
+	}
+	return ctrlSrves
+}
+
+func (ctrl *ctrlServices) GetCompany(w http.ResponseWriter, r *http.Request) {
+
+	log := ctrl.Logger.With("REQ ID:", utils.GetReqId(r))
 	id, err := u.GetUintParam(r, "id")
 	if err != nil {
 		log.Error("Can not find company ID")
@@ -24,6 +41,7 @@ func GetCompany(w http.ResponseWriter, r *http.Request) {
 		u.HttpError(w, http.StatusInternalServerError, err)
 		return
 	}
+	m := models.NewCtrlServices(log, ctrl.DB)
 	data, status, err := m.GetCompany(id)
 	if err != nil {
 		log.Error("Got error: ", err)
@@ -32,18 +50,19 @@ func GetCompany(w http.ResponseWriter, r *http.Request) {
 	u.HttpRespond(w, status, data)
 }
 
-func CreateCompany(w http.ResponseWriter, r *http.Request) {
-	log := l.NewLogger("")
+func (ctrl *ctrlServices) CreateCompany(w http.ResponseWriter, r *http.Request) {
+	log := ctrl.Logger.With("REQ ID:", utils.GetReqId(r))
 	productsProducer := kafkala.NewCompanyProducer()
 	productsProducer.Run()
 	defer productsProducer.Close()
 
-	company := &m.NewCompany{}
+	company := &models.NewCompany{}
 	err := json.NewDecoder(r.Body).Decode(company)
 	if err != nil {
 		log.Error("Could not unmarshal req body. Error:", err)
 		u.HttpError(w, http.StatusBadRequest, err)
 	}
+	m := models.NewCtrlServices(log, ctrl.DB)
 	data, status, err := m.CreateCompany(*company)
 	if err != nil {
 		log.Error("Create Company returned error. Error:", err)
@@ -57,8 +76,8 @@ func CreateCompany(w http.ResponseWriter, r *http.Request) {
 	u.HttpRespond(w, status, data)
 }
 
-func DeleteCompany(w http.ResponseWriter, r *http.Request) {
-	log := l.NewLogger("")
+func (ctrl *ctrlServices) DeleteCompany(w http.ResponseWriter, r *http.Request) {
+	log := ctrl.Logger.With("REQ ID:", utils.GetReqId(r))
 	id, err := u.GetUintParam(r, "id")
 	if err != nil {
 		log.Error("Can not find company ID")
@@ -66,6 +85,7 @@ func DeleteCompany(w http.ResponseWriter, r *http.Request) {
 		u.HttpError(w, http.StatusInternalServerError, err)
 		return
 	}
+	m := models.NewCtrlServices(log, ctrl.DB)
 	status, err := m.DeleteCompany(id)
 	if err != nil {
 		u.HttpError(w, status, err)
@@ -74,8 +94,8 @@ func DeleteCompany(w http.ResponseWriter, r *http.Request) {
 	u.HttpRespond(w, status, nil)
 }
 
-func UpdateCompany(w http.ResponseWriter, r *http.Request) {
-	log := l.NewLogger("")
+func (ctrl *ctrlServices) UpdateCompany(w http.ResponseWriter, r *http.Request) {
+	log := ctrl.Logger.With("REQ ID:", utils.GetReqId(r))
 	productsProducer := kafkala.NewCompanyProducer()
 	productsProducer.Run()
 	defer productsProducer.Close()
@@ -87,7 +107,8 @@ func UpdateCompany(w http.ResponseWriter, r *http.Request) {
 		u.HttpError(w, http.StatusInternalServerError, err)
 		return
 	}
-	compOpts := &m.EditCompanyOpts{}
+	m := models.NewCtrlServices(log, ctrl.DB)
+	compOpts := &models.EditCompanyOpts{}
 	err = json.NewDecoder(r.Body).Decode(compOpts)
 	if err != nil {
 		log.Error("Could not unmarshal body")

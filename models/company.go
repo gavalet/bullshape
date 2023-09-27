@@ -8,6 +8,9 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
+
+	"github.com/jinzhu/gorm"
+	"go.uber.org/zap"
 )
 
 type Company struct {
@@ -46,9 +49,23 @@ const (
 // companiesMX stores locks for each company.
 var companiesMX = sync.Map{}
 
-func GetCompany(id uint) (*Company, int, error) {
-	dbCompany, err := db.GetCompanyByID(db.GormDB, id)
+type services struct {
+	DB     *gorm.DB
+	Logger *zap.SugaredLogger
+}
+
+func NewCtrlServices(logger *zap.SugaredLogger, db *gorm.DB) *services {
+	ctrlSrves := &services{
+		DB:     db,
+		Logger: logger,
+	}
+	return ctrlSrves
+}
+
+func (srv *services) GetCompany(id uint) (*Company, int, error) {
+	dbCompany, err := db.GetCompanyByID(srv.DB, id)
 	if err != nil {
+		srv.Logger.Error("Could not get Company. Error: ", err)
 		return nil, http.StatusNotFound,
 			u.NewError(err, GET_COMPANY_ERRCODE, errors.New(GET_COMPANY_ERR))
 	}
@@ -56,35 +73,30 @@ func GetCompany(id uint) (*Company, int, error) {
 	return &company, http.StatusOK, nil
 }
 
-func CreateCompany(newCompany NewCompany) (*Company, int, error) {
+func (srv *services) CreateCompany(newCompany NewCompany) (*Company, int, error) {
 
 	if newCompany.UUID == nil {
 		uuid := utils.NewUUIDV4()
 		newCompany.UUID = &uuid
-		fmt.Println("Create new Company UUID")
+		srv.Logger.Info("Create new Company UUID")
 	}
 	if newCompany.Name == nil || newCompany.NumEmployes == nil ||
 		newCompany.Type == nil || newCompany.Registered == nil {
+		srv.Logger.Error(CREATE_COMPANY_EMPTY_PARAMS_ERR)
 		return nil, http.StatusBadRequest,
 			u.NewError(nil, CREATE_COMPANY_EMPTY_PARAMS_ERRCODE,
 				errors.New(CREATE_COMPANY_EMPTY_PARAMS_ERR))
 	}
-	// _, err := db.GetCompanyByName(db.GormDB, *newCompany.Name)
-	// if err == nil {
-	// 	return nil, http.StatusBadRequest,
-	// 		u.NewError(nil, CREATE_COMPANY_COMPANY_NAME_ERRCODE,
-	// 			errors.New(CREATE_COMPANY_COMPANY_NAME_ERR))
-	// }
-	// fmt.Println("Create company")
-
 	dbCompany, err := createDBCompanyObj(newCompany)
 	if err != nil {
+		srv.Logger.Error("Failed to create company object")
 		err := u.NewError(nil, CREATE_COMPANY_COMPANY_WRONG_TYPE_ERRCODE,
 			errors.New(CREATE_COMPANY_COMPANY_NAME_ERR))
 		return nil, http.StatusBadRequest, err
 	}
-	err = dbCompany.Create(db.GormDB)
+	err = dbCompany.Create(srv.DB)
 	if err != nil {
+		srv.Logger.Error("Failed to create DB object : Error:", err)
 		return nil, http.StatusInternalServerError, err
 	}
 
@@ -92,19 +104,21 @@ func CreateCompany(newCompany NewCompany) (*Company, int, error) {
 	return &cmpn, http.StatusOK, nil
 }
 
-func DeleteCompany(id uint) (int, error) {
+func (srv *services) DeleteCompany(id uint) (int, error) {
 	companiesMX, _ := companiesMX.LoadOrStore(fmt.Sprint(id), &sync.Mutex{})
 	companiesMX.(*sync.Mutex).Lock()
 	defer companiesMX.(*sync.Mutex).Unlock()
 
-	dbCompany, err := db.GetCompanyByID(db.GormDB, id)
+	dbCompany, err := db.GetCompanyByID(srv.DB, id)
 	if err != nil {
+		srv.Logger.Error("Company does not include in DB.")
 		return http.StatusNotFound,
 			u.NewError(err, DELETE_COMPANY_NO_ENTRY_ERRCODE,
 				errors.New(GET_COMPANY_ERR))
 	}
-	err = dbCompany.Delete(db.GormDB)
+	err = dbCompany.Delete(srv.DB)
 	if err != nil {
+		srv.Logger.Error("Unable to delete company from DB.")
 		return http.StatusInternalServerError,
 			u.NewError(err, DELETE_COMPANY_COULD_NOT_DELETE_ERRCODE,
 				errors.New(GET_COMPANY_ERR))
@@ -112,12 +126,12 @@ func DeleteCompany(id uint) (int, error) {
 	return http.StatusNoContent, nil
 }
 
-func UpdateCompany(id uint, opt EditCompanyOpts) (*Company, int, error) {
+func (srv *services) UpdateCompany(id uint, opt EditCompanyOpts) (*Company, int, error) {
 	companiesMX, _ := companiesMX.LoadOrStore(fmt.Sprint(id), &sync.Mutex{})
 	companiesMX.(*sync.Mutex).Lock()
 	defer companiesMX.(*sync.Mutex).Unlock()
 
-	dbCompany, err := db.GetCompanyByID(db.GormDB, id)
+	dbCompany, err := db.GetCompanyByID(srv.DB, id)
 	if err != nil {
 		return nil, http.StatusNotFound,
 			u.NewError(err, UPDATE_COMPANY_NO_ENTRY_ERRCODE,
@@ -136,7 +150,7 @@ func UpdateCompany(id uint, opt EditCompanyOpts) (*Company, int, error) {
 	if opt.Type != nil && IsValidType(*opt.Type) {
 		dbCompany.Type = *opt.Type
 	}
-	err = dbCompany.Update(db.GormDB)
+	err = dbCompany.Update(srv.DB)
 	if err != nil {
 		return nil, http.StatusInternalServerError,
 			u.NewError(err, UPDATE_COMPANY_COULD_NOT_UPDATE,

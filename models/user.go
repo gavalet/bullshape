@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/jinzhu/gorm"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -34,7 +35,7 @@ func serialiseUser(dbUser *db.User, token string) User {
 }
 
 //validateUser validates incoming user details...
-func validateUser(user *User) error {
+func validateUser(dbGorm *gorm.DB, user *User) error {
 
 	if user.Username == "" {
 		return errors.New("Username should not be empty")
@@ -42,17 +43,17 @@ func validateUser(user *User) error {
 	if len(user.Password) < 6 {
 		return errors.New("Password should not at least 7 characters")
 	}
-	err, _ := db.GetUserByUsername(db.GormDB, user.Username)
+	err, _ := db.GetUserByUsername(dbGorm, user.Username)
 	if err == nil {
 		return errors.New("Username already in use by another user")
 	}
 	return nil
 }
 
-func CreateUser(user *User) (*User, int, error) {
-
-	err := validateUser(user)
+func (srv *services) CreateUser(user *User) (*User, int, error) {
+	err := validateUser(srv.DB, user)
 	if err != nil {
+		srv.Logger.Error("Invalid User. Error: ", err)
 		return nil, http.StatusBadRequest,
 			u.NewError(err, CREATE_USER_WRONG_PARAMS_ERRCODE,
 				errors.New(CREATE_USER_WRONG_PARAMS_ERR))
@@ -61,8 +62,8 @@ func CreateUser(user *User) (*User, int, error) {
 	hashedPassword := utils.EncryptPass(user.Password)
 	userDB := db.User{Username: user.Username, Password: hashedPassword, Token: user.Token}
 
-	if err := userDB.Create(db.GormDB); err != nil {
-		//log.Error("Failed to create user.")
+	if err := userDB.Create(srv.DB); err != nil {
+		srv.Logger.Error("Failed to create user.")
 		return nil, http.StatusInternalServerError,
 			u.NewError(err, CREATE_USER_WRONG_PARAMS_ERRCODE,
 				errors.New("Failed to create use."))
@@ -81,16 +82,17 @@ func CreateUser(user *User) (*User, int, error) {
 	return &userNew, http.StatusOK, nil
 }
 
-func Login(username, password string) (*User, *http.Cookie, int, error) {
+func (srv *services) Login(username, password string) (*User, *http.Cookie, int, error) {
 
-	err, user := db.GetUserByUsername(db.GormDB, username)
+	err, user := db.GetUserByUsername(srv.DB, username)
 	if err != nil {
-		//log.Error("Can not find user")
+		srv.Logger.Error("Can not find user")
 		return nil, nil, http.StatusBadRequest, errors.New("Can not find user")
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword { //Password does not match!
+		srv.Logger.Error("Invalid password.")
 		return nil, nil, http.StatusUnauthorized, errors.New("Invalid //login credentials")
 	}
 	user.Password = ""
